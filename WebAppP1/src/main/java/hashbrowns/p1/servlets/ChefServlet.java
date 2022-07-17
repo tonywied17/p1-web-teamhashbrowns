@@ -23,103 +23,101 @@ public class ChefServlet extends HttpServlet {
 	private Chef chef = new Chef();
 	private ORM orm = new ORMImpl();
 	private ObjectMapper objMapper = new ObjectMapper();
-	
+
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		
-		StringBuilder uriString = new StringBuilder(req.getRequestURI());
-		
-		//we have a slash	
-		if(uriString.indexOf("/") != -1) {
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+		StringBuilder uriString = new StringBuilder(req.getRequestURI()); // /p1/hello/id
+		uriString.replace(0, req.getContextPath().length() + 1, "");
+
+		// if there is a slash
+		if (uriString.indexOf("/") != -1) {
+			uriString.replace(0, uriString.indexOf("/") + 1, ""); // 6
+
+			String path = uriString.toString();
 			
-			//remove slash
-			uriString.replace(0, uriString.indexOf("/") + 1, "");
-			
-			//grab id from path
-			String[] ids = uriString.toString().split(" ");
-			
-			for(String id : ids) {
+			try {
+				int id = Integer.parseInt(path);
+				Chef chef = new Chef();
+				chef.setId(id);
 				
-				//create object and apply path number as its id
-				Chef reqChef = new Chef();
-				reqChef.setId(Integer.valueOf(id));
-				//send that chef object with id applied to the orm
-				Object chefId = orm.findById(reqChef);
+				Object returnChef = orm.findById(chef);
 				
-				//write as json
 				PrintWriter writer = resp.getWriter();
 				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-				String json = ow.writeValueAsString(chefId);
+				String json = ow.writeValueAsString(returnChef);
 				writer.write(json);
+
+			} catch (Exception e) {
+				
+				PrintWriter writer = resp.getWriter();
+				writer.write("Not an id!");
 				
 			}
-			
-		}else {
-			
-			
-			//no path get all chefs in database
+
+		} else {
+
+			// no path get all chefs in database
 			List<Object> chefs = orm.getAll(chef);
 			PrintWriter writer = resp.getWriter();
-			
-			//Write to response body
-			//writer.write(objMapper.writeValueAsString(chefs));
-			
+
+			// Write to response body
+			// writer.write(objMapper.writeValueAsString(chefs));
+
 			// write as json
 			ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 			String json = ow.writeValueAsString(chefs);
 			writer.write(json);
 		}
-		
+
 	}
-	
+
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		
-		Chef chef  = objMapper.readValue(req.getInputStream(), Chef.class);
-		
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+		Chef chef = objMapper.readValue(req.getInputStream(), Chef.class);
+
 		try {
 			orm.insertObject(chef);
 		} catch (UsernameAlreadyExistsException | RecipeNameAlreadyExists e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		PrintWriter writer = resp.getWriter();
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 		String json = ow.writeValueAsString(chef);
 		writer.write(json);
 
 	}
-	
+
 	@Override
-	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		Chef chef  = objMapper.readValue(req.getInputStream(), Chef.class);
+	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		Chef chef = objMapper.readValue(req.getInputStream(), Chef.class);
 
 		orm.updateObject(chef);
-		
+
 		PrintWriter writer = resp.getWriter();
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 		String json = ow.writeValueAsString(chef);
 		writer.write(json);
 	}
-	
+
 	@Override
-	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		
-		Chef chef  = objMapper.readValue(req.getInputStream(), Chef.class);
+	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+		Chef chef = objMapper.readValue(req.getInputStream(), Chef.class);
 
 		orm.deleteObject(chef);
-		
+
 		PrintWriter writer = resp.getWriter();
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 		String json = ow.writeValueAsString(chef);
 		writer.write(json);
 	}
-	
+
 	@Override
-	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 	}
-	
-	
-	
+
 }
