@@ -27,15 +27,48 @@ public class ChefServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
 		
-		//get Chefs
-		List<Object> chefs = orm.getAll(chef);
-		PrintWriter writer = resp.getWriter();
-		//Write to response body
-		//writer.write(objMapper.writeValueAsString(chefs));
+		StringBuilder uriString = new StringBuilder(req.getRequestURI());
 		
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		String json = ow.writeValueAsString(chefs);
-		writer.write(json);
+		//we have a slash	
+		if(uriString.indexOf("/") != -1) {
+			
+			//remove slash
+			uriString.replace(0, uriString.indexOf("/") + 1, "");
+			
+			//grab id from path
+			String[] ids = uriString.toString().split(" ");
+			
+			for(String id : ids) {
+				
+				//create object and apply path number as its id
+				Chef reqChef = new Chef();
+				reqChef.setId(Integer.valueOf(id));
+				//send that chef object with id applied to the orm
+				Object chefId = orm.findById(reqChef);
+				
+				//write as json
+				PrintWriter writer = resp.getWriter();
+				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+				String json = ow.writeValueAsString(chefId);
+				writer.write(json);
+				
+			}
+			
+		}else {
+			
+			//no path get all chefs
+			List<Object> chefs = orm.getAll(chef);
+			PrintWriter writer = resp.getWriter();
+			
+			//Write to response body
+			//writer.write(objMapper.writeValueAsString(chefs));
+			
+			// write as json
+			ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+			String json = ow.writeValueAsString(chefs);
+			writer.write(json);
+		}
+		
 	}
 	
 	@Override
