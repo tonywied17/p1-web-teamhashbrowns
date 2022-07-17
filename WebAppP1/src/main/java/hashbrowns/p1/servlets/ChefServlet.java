@@ -56,7 +56,8 @@ public class ChefServlet extends HttpServlet {
 			
 		}else {
 			
-			//no path get all chefs
+			
+			//no path get all chefs in database
 			List<Object> chefs = orm.getAll(chef);
 			PrintWriter writer = resp.getWriter();
 			
