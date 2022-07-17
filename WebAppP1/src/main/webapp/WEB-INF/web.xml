@@ -13,5 +13,23 @@
   	</servlet-mapping>
   
   
+  <servlet>
+  <servlet-name>Recipe</servlet-name>
+  <servlet-class>hashbrowns.p1.servlets.RecipeServlet</servlet-class>
+  </servlet>
   
+  	<servlet-mapping>
+  	<servlet-name>Recipe</servlet-name>
+  	<url-pattern>/recipe/*</url-pattern>
+  	</servlet-mapping>
+  	
+  	<servlet>
+  <servlet-name>Player</servlet-name>
+  <servlet-class>hashbrowns.p1.servlets.PlayerServlet</servlet-class>
+  </servlet>
+  
+  	<servlet-mapping>
+  	<servlet-name>Player</servlet-name>
+  	<url-pattern>/player/*</url-pattern>
+  	</servlet-mapping>
 </web-app>
