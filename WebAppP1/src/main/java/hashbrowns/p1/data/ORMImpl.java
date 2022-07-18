@@ -6,10 +6,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import hashbrowns.p1.utils.*;
@@ -18,14 +21,13 @@ import hashbrowns.p1.exceptions.RecipeNameAlreadyExists;
 import hashbrowns.p1.exceptions.UsernameAlreadyExistsException;
 import hashbrowns.p1.utils.Connect;
 
-public class ORMImpl implements ORM{
+public class ORMImpl implements ORM {
 
-	private Connect con = Connect.getConnect();
+	private Connect con = Connect.getConnectionDB();
 	Logger logger = Logger.getLogger();
 
-
 	// Might have to return object for future use
-	public <T> Object insertObject(Object object) throws UsernameAlreadyExistsException, RecipeNameAlreadyExists{
+	public <T> Object insertObject(Object object) throws UsernameAlreadyExistsException, RecipeNameAlreadyExists {
 		Object obj = null;
 		try (Connection connection = con.getConnection()) {
 			logger.log("ORM Attemps insertion", LoggingLevel.TRACE);
@@ -39,8 +41,10 @@ public class ORMImpl implements ORM{
 			info.append("insert into " + clazz.getSimpleName().toLowerCase() + " values (");
 			for (Field field : fields) {
 				field.setAccessible(true);
+
 				Annotation annId = field.getAnnotation(Id.class);
 				annId = field.getAnnotation(Id.class);
+
 				if (annId != null) {
 					info.append("default, ");
 					field.set(temp, field.get(object));
@@ -115,6 +119,7 @@ public class ORMImpl implements ORM{
 	}
 
 	public Object findById(Object object) {
+
 		try (Connection connection = con.getConnection();) {
 			logger.log("ORM Attemps findByID", LoggingLevel.TRACE);
 			PreparedStatement ps;
@@ -142,7 +147,29 @@ public class ORMImpl implements ORM{
 					Annotation annId = field.getAnnotation(Id.class);
 					annId = field.getAnnotation(Id.class);
 					if (annId == null) {
-						field.set(object, rs.getObject(field.getName().toString()));
+
+						if (field.getType().getSimpleName().equals("String")) {
+
+							field.set(object, rs.getObject(field.getName().toString()));
+
+						} else if (field.getType().getSimpleName().equals("int")) {
+
+							field.setInt(object, (int) rs.getObject(field.getName()));
+
+						} else if (field.getType().getSimpleName().equals("Double")) {
+
+							double d = Double.parseDouble((String) rs.getObject(field.getName()));
+
+							field.set(object, d);
+
+						} else if (field.getType().getSimpleName().equals("boolean")) {
+
+							field.setBoolean(object, (boolean) rs.getObject(field.getName()));
+
+						} else {
+							System.out.println("Unknown data type");
+						}
+
 					}
 				}
 
@@ -159,93 +186,109 @@ public class ORMImpl implements ORM{
 	}
 
 	public <T> Object updateObject(Object object) {
-		Object obj = null;
-		try (Connection connection = con.getConnection()) {
-			logger.log("ORM Attemps to update", LoggingLevel.TRACE);
-			T temp = (T) object.getClass().getConstructor().newInstance();
-			PreparedStatement ps;
-			int rowsAffected;
-			connection.setAutoCommit(false);
-			StringBuilder info = new StringBuilder();
-			Class<?> clazz = object.getClass();
-			Field[] fields = clazz.getDeclaredFields();
-			info.append("update " + clazz.getSimpleName().toLowerCase() + " set");
-			for (Field field : fields) {
-				field.setAccessible(true);
-				Annotation annId = field.getAnnotation(Id.class);
-				annId = field.getAnnotation(Id.class);
-				if (annId == null) {
-					info.append(" " + field.getName() + " = " + "'" + field.get(object) + "'" + " ,");
-					field.set(temp, field.get(object));
+		
+		//
+		StringBuilder fieldStr = new StringBuilder();
+		Class<?> clazz = object.getClass();
+		Field[] fields = clazz.getDeclaredFields();
+		//
+		String id = null;
+		String idValue = null;
+		//
+		for (Field field : fields) {
+			field.setAccessible(true);
+			try {
+				if (!field.isAnnotationPresent(Id.class) && (field.get(object) != null || !field.get(object).toString().equals("0"))) {
+					
+					fieldStr.append(field.getName());
+					fieldStr.append("='");
+					fieldStr.append(field.get(object));
+					fieldStr.append("', ");
+					
+				} else if (field.isAnnotationPresent(Id.class)) {
+					
+					field.setAccessible(true);
+					id = field.getName().toString();
+					idValue = field.get(object).toString();
+					
+				}else {
+					
 				}
+				
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			info.delete(info.length() - 2, info.length());
-			for (Field field : fields) {
-				field.setAccessible(true);
-				Annotation annId = field.getAnnotation(Id.class);
-				annId = field.getAnnotation(Id.class);
-				if (annId != null) {
-					info.append(" where " + field.getName() + " = " + field.get(object) + ";");
-					field.set(temp, field.get(object));
-				}
-			}
-
-			ps = connection.prepareStatement(info.toString());
-			rowsAffected = ps.executeUpdate();
-
-			if (rowsAffected == 1) {
-				logger.log("Update Completed", LoggingLevel.TRACE);
-				obj = temp;
-				connection.commit();
-			} else {
-				logger.log("Update Went Wrong", LoggingLevel.WARN);
-				connection.rollback();
-			}
-		} catch (SQLException | IllegalArgumentException | IllegalAccessException | InstantiationException
-				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			// TODO Auto-generated catch block
+		};
+		fieldStr.setLength(fieldStr.length() - 2);
+		//
+		String query = "UPDATE " + clazz.getSimpleName().toLowerCase() + " SET " + fieldStr.toString() + " where " + id + "=" + idValue + "";
+		try (Connection conn = con.getConnection()) {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return obj;
+		System.out.println(query);
+		return object;
+		
 	}
 
 	public <T> List<T> getAll(Object object) {
+		
+		Class<?> clazz = object.getClass();
+		
+		String sql = "SELECT * FROM " + clazz.getSimpleName().toLowerCase();
+		
 		List<T> all = new ArrayList<>();
-		try (Connection connection = con.getConnection()) {
-			logger.log("ORM request All", LoggingLevel.TRACE);
-			PreparedStatement ps;
+		try (Connection conn = con.getConnection()) {
+			PreparedStatement ps = conn.prepareStatement(sql);
 			ResultSet rs;
-			StringBuilder info = new StringBuilder();
-			Class<?> clazz = object.getClass();
+			
 			Field[] fields = clazz.getDeclaredFields();
-			info.append("select * from " + clazz.getSimpleName().toLowerCase() + ";");
-			ps = connection.prepareStatement(info.toString());
 			rs = ps.executeQuery();
-
 			while (rs.next()) {
+				
 				T temp = (T) object.getClass().getConstructor().newInstance();
+				
 				for (Field field : fields) {
 					field.setAccessible(true);
+					
 					Annotation annId = field.getAnnotation(Id.class);
 					annId = field.getAnnotation(Id.class);
 					if (annId == null) {
+						
 						int column = rs.findColumn(field.getName());
-						field.set(temp, rs.getObject(column));
+						
+						if (field.getType().getSimpleName().equals("String")) {
+							
+							field.set(temp, rs.getObject(column));
+							
+						} else if (field.getType().getSimpleName().equals("int")) {
+							
+							field.setInt(temp, (int) rs.getObject(column));
+							
+						} else if (field.getType().getSimpleName().equals("Double")) {
+							
+							double d = Double.parseDouble((String) rs.getObject(column));
+							field.set(temp, d);
+							
+						} else if (field.getType().getSimpleName().equals("boolean")) {
+							
+							field.setBoolean(temp, (boolean) rs.getObject(column));
+						}
 					} else {
 						int column = rs.findColumn(field.getName());
 						field.set(temp, rs.getObject(column));
 					}
 				}
 				all.add(temp);
-
 			}
-
 		} catch (SQLException | IllegalArgumentException | IllegalAccessException | InstantiationException
 				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		return all;
 	}
 

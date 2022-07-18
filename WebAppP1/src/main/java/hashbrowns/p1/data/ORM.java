@@ -34,6 +34,8 @@ public interface ORM {
 	 * 
 	 *
 	 *@param Object to find class/table
+	 * @throws IllegalAccessException 
+	 * @throws IllegalArgumentException 
 	 *@Return Object sought out
 	 */
 	public Object findById(Object object);

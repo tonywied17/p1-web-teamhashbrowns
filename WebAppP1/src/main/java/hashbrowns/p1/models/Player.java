@@ -1,5 +1,7 @@
 package hashbrowns.p1.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import hashbrowns.p1.annotations.Id;
 
 public class Player {
