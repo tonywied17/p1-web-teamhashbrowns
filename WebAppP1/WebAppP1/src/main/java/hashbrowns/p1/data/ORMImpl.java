@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import hashbrowns.p1.utils.*;
 import hashbrowns.p1.annotations.Id;
 import hashbrowns.p1.exceptions.RecipeNameAlreadyExists;
 import hashbrowns.p1.exceptions.UsernameAlreadyExistsException;
@@ -21,14 +20,11 @@ import hashbrowns.p1.utils.Connect;
 public class ORMImpl implements ORM{
 
 	private Connect con = Connect.getConnect();
-	Logger logger = Logger.getLogger();
-
 
 	// Might have to return object for future use
 	public <T> Object insertObject(Object object) throws UsernameAlreadyExistsException, RecipeNameAlreadyExists{
 		Object obj = null;
 		try (Connection connection = con.getConnection()) {
-			logger.log("ORM Attemps insertion", LoggingLevel.TRACE);
 			T temp = (T) object.getClass().getConstructor().newInstance();
 			PreparedStatement ps;
 			int rowsAffected;
@@ -56,11 +52,9 @@ public class ORMImpl implements ORM{
 			rowsAffected = ps.executeUpdate();
 
 			if (rowsAffected == 1) {
-				logger.log("Insertion Completed", LoggingLevel.TRACE);
 				connection.commit();
 				obj = temp;
 			} else {
-				logger.log("Insertion Went Wrong", LoggingLevel.WARN);
 				connection.rollback();
 			}
 		} catch (SQLException | IllegalArgumentException | IllegalAccessException | InstantiationException
@@ -74,7 +68,6 @@ public class ORMImpl implements ORM{
 	public <T> Object deleteObject(Object object) {
 		Object obj = null;
 		try (Connection connection = con.getConnection();) {
-			logger.log("ORM Attemps Deletion", LoggingLevel.TRACE);
 			T temp = (T) object.getClass().getConstructor().newInstance();
 			PreparedStatement ps;
 			int rowsAffected;
@@ -98,11 +91,9 @@ public class ORMImpl implements ORM{
 			rowsAffected = ps.executeUpdate();
 
 			if (rowsAffected == 1) {
-				logger.log("Deletion Completed", LoggingLevel.TRACE);
 				connection.commit();
 				obj = temp;
 			} else {
-				logger.log("Deletion Went Wrong", LoggingLevel.WARN);
 				connection.rollback();
 			}
 
@@ -116,7 +107,6 @@ public class ORMImpl implements ORM{
 
 	public Object findById(Object object) {
 		try (Connection connection = con.getConnection();) {
-			logger.log("ORM Attemps findByID", LoggingLevel.TRACE);
 			PreparedStatement ps;
 			ResultSet rs;
 			connection.setAutoCommit(false);
@@ -136,7 +126,6 @@ public class ORMImpl implements ORM{
 			ps = connection.prepareStatement(info.toString());
 			rs = ps.executeQuery();
 			if (rs.next()) {
-				logger.log("ID + Object Was Found", LoggingLevel.TRACE);
 				for (Field field : clazz.getDeclaredFields()) {
 					field.setAccessible(true);
 					Annotation annId = field.getAnnotation(Id.class);
@@ -147,7 +136,6 @@ public class ORMImpl implements ORM{
 				}
 
 			} else {
-				logger.log("Invalid ID was inserted", LoggingLevel.INFO);
 				object = null;
 			}
 		} catch (SQLException | IllegalArgumentException | IllegalAccessException e) {
@@ -161,7 +149,6 @@ public class ORMImpl implements ORM{
 	public <T> Object updateObject(Object object) {
 		Object obj = null;
 		try (Connection connection = con.getConnection()) {
-			logger.log("ORM Attemps to update", LoggingLevel.TRACE);
 			T temp = (T) object.getClass().getConstructor().newInstance();
 			PreparedStatement ps;
 			int rowsAffected;
@@ -194,11 +181,9 @@ public class ORMImpl implements ORM{
 			rowsAffected = ps.executeUpdate();
 
 			if (rowsAffected == 1) {
-				logger.log("Update Completed", LoggingLevel.TRACE);
 				obj = temp;
 				connection.commit();
 			} else {
-				logger.log("Update Went Wrong", LoggingLevel.WARN);
 				connection.rollback();
 			}
 		} catch (SQLException | IllegalArgumentException | IllegalAccessException | InstantiationException
@@ -212,7 +197,6 @@ public class ORMImpl implements ORM{
 	public <T> List<T> getAll(Object object) {
 		List<T> all = new ArrayList<>();
 		try (Connection connection = con.getConnection()) {
-			logger.log("ORM request All", LoggingLevel.TRACE);
 			PreparedStatement ps;
 			ResultSet rs;
 			StringBuilder info = new StringBuilder();

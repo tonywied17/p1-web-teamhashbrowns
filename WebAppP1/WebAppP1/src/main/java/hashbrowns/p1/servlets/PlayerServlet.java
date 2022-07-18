@@ -7,14 +7,11 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
-import hashbrowns.p1.utils.*;
 import hashbrowns.p1.data.ORM;
 import hashbrowns.p1.data.ORMImpl;
 import hashbrowns.p1.exceptions.RecipeNameAlreadyExists;
 import hashbrowns.p1.exceptions.UsernameAlreadyExistsException;
 import hashbrowns.p1.models.Player;
-import hashbrowns.p1.models.Recipe;
-import hashbrowns.p1.services.PlayerServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,53 +20,34 @@ import jakarta.servlet.http.HttpServletResponse;
 public class PlayerServlet extends HttpServlet {
 
 	private Player player = new Player();
-	private PlayerServiceImpl playerService = new PlayerServiceImpl();
+	private ORM orm = new ORMImpl();
 	private ObjectMapper objMapper = new ObjectMapper();
-	Logger logger = Logger.getLogger();
-
+	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		StringBuilder uriString = new StringBuilder(req.getRequestURI()); // /p1/hello/id
-		uriString.replace(0, req.getContextPath().length() + 1, "");
-		// if there is a slash
-		if (uriString.indexOf("/") != -1) {
-			logger.log("User is requsting a specific Player (--DO_GET()--)", LoggingLevel.TRACE);
-			uriString.replace(0, uriString.indexOf("/") + 1, ""); // 6
-			String path = uriString.toString();
 		
-			try {
-				int id = Integer.parseInt(path);
-				Player player = new Player();
-				player.setId(id);
-				
-				Object returnPlayer = playerService.findByID(player);
-				
-				PrintWriter writer = resp.getWriter();
-				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-				String json = ow.writeValueAsString(returnPlayer);
-				writer.write(json);
-			} catch (Exception e) {
-				logger.log("User Entered an invalid Player ID", LoggingLevel.INFO);
-				PrintWriter writer = resp.getWriter();
-				writer.write("Not an id!");}
-			} else {
-				
-			List<Object> pl = playerService.findAll(player);
-			PrintWriter writer = resp.getWriter();
-			logger.log("User is requsting all Players (--DO_GET()--)", LoggingLevel.TRACE);
-			// write as json
-			ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-			String json = ow.writeValueAsString(pl);
-			writer.write(json);
-		}
+		//get Chefs
+		List<Object> players = orm.getAll(player);
+		PrintWriter writer = resp.getWriter();
+		//Write to response body
+		//writer.write(objMapper.writeValueAsString(chefs));
+		
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		String json = ow.writeValueAsString(players);
+		writer.write(json);
 	}
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		logger.log("User is Inserting a Player (--DO_POST()--)", LoggingLevel.TRACE);
+		
 		Player player  = objMapper.readValue(req.getInputStream(), Player.class);
 		
-		playerService.registerObject(player);
+		try {
+			orm.insertObject(player);
+		} catch (UsernameAlreadyExistsException | RecipeNameAlreadyExists e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		PrintWriter writer = resp.getWriter();
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -80,9 +58,9 @@ public class PlayerServlet extends HttpServlet {
 	
 	@Override
 	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		logger.log("User is Updating a Player (--DO_PUT()--)", LoggingLevel.TRACE);
 		Player player  = objMapper.readValue(req.getInputStream(), Player.class);
-		playerService.updateObject(player);
+
+		orm.updateObject(player);
 		
 		PrintWriter writer = resp.getWriter();
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -92,10 +70,10 @@ public class PlayerServlet extends HttpServlet {
 	
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		logger.log("User is Deleting a Player (--DO_DELETE()--)", LoggingLevel.TRACE);
+		
 		Player player  = objMapper.readValue(req.getInputStream(), Player.class);
 
-		playerService.deleteObj(player);
+		orm.deleteObject(player);
 		
 		PrintWriter writer = resp.getWriter();
 		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();

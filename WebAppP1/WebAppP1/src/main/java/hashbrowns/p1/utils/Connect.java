@@ -6,8 +6,6 @@ import java.sql.SQLException;
 
 
 public class Connect {
-	
-	static Logger logger = Logger.getLogger();
 
 	private static String jbdcURL = System.getenv("DB_URL");
 	private static String username = System.getenv("DB_USER");
@@ -18,7 +16,6 @@ public class Connect {
 	public static synchronized Connect getConnect() {
 		if(con == null) {
 			con = new Connect();
-			logger.log("Connection Object Created", LoggingLevel.INFO);
 		}
 		return con;
 	}
@@ -28,7 +25,6 @@ public class Connect {
 			Class.forName("org.postgresql.Driver");
 			con = DriverManager.getConnection(jbdcURL, username, password);
 		} catch (SQLException | ClassNotFoundException e) {
-			logger.log("Database Connection Failed", LoggingLevel.FATAL);
 			e.printStackTrace();
 		}
 

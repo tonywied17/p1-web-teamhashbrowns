@@ -3,7 +3,6 @@ package hashbrowns.p1.services;
 import java.sql.SQLException;
 import java.util.List;
 
-import hashbrowns.p1.utils.*;
 import hashbrowns.p1.data.ORMImpl;
 import hashbrowns.p1.exceptions.RecipeNameAlreadyExists;
 import hashbrowns.p1.exceptions.UsernameAlreadyExistsException;
@@ -11,7 +10,6 @@ import hashbrowns.p1.exceptions.UsernameAlreadyExistsException;
 public class ChefServiceImpl implements Service {
 
 	ORMImpl orm = new ORMImpl();
-	Logger logger = Logger.getLogger();
 
 	@Override
 	public Object registerObject(Object obj) {
