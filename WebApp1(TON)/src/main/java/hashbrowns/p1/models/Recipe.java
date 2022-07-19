@@ -24,11 +24,11 @@ public class Recipe {
 	}
 
 	
-	public Recipe(int id,String user, String description, String instructions,
+	public Recipe(int id,String name, String description, String instructions,
 			String ingredients) {
 		super();
 		this.id = id;
-		this.name = user;
+		this.name = name;
 		this.description = description;
 		this.instructions = instructions;
 		this.ingredients = ingredients;
@@ -43,11 +43,11 @@ public class Recipe {
 		this.id = id;
 	}
 
-	public String getUsername() {
+	public String getName() {
 		return name;
 	}
 
-	public void setUsername(String username) {
+	public void setName(String username) {
 		this.name = username;
 	}
 

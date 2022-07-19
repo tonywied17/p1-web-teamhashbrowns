@@ -32,10 +32,10 @@ public class ChefServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 		StringBuilder uriString = new StringBuilder(req.getRequestURI()); // /p1/hello/id
-		uriString.replace(0, req.getContextPath().length() + 1, "");
+		uriString.replace(0, req.getContextPath().length() + 1, ""); // up to /
 
 		// if there is a slash
-		if (uriString.indexOf("/") != -1) {
+		if (uriString.indexOf("/") != -1) { // if there's a slash
 			logger.log("User is requsting a specific Chef (--DO_GET()--)", LoggingLevel.TRACE);
 			uriString.replace(0, uriString.indexOf("/") + 1, ""); // 6
 			String path = uriString.toString();

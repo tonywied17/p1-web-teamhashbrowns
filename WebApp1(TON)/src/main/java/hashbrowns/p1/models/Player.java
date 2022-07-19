@@ -104,7 +104,7 @@ public class Player {
 
 	@Override
 	public String toString() {
-		return "[id=" + id + ", name=" + name + ", position=" + position + ", debut=" + debut + ", average=" + average
+		return "Player [id=" + id + ", name=" + name + ", position=" + position + ", debut=" + debut + ", average=" + average
 				+ ", homeruns=" + homeruns + ", rbi=" + rbi + ", active=" + active + "]";
 	}
 

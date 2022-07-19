@@ -70,7 +70,7 @@ public class Chef {
 	@Override
 	public String toString() {
 		return "Chef [id=" + id + ", name=" + name + ", username=" + username + ", password=" + password + "]";
-	}
+	} 
 
 	
 
