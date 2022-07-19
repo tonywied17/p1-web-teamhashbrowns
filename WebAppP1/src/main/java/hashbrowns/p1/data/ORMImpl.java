@@ -23,13 +23,14 @@ import hashbrowns.p1.utils.Connect;
 
 public class ORMImpl implements ORM {
 
-	private Connect con = Connect.getConnectionDB();
+	private Connect con = Connect.getConnectionUtil();
+	
 	Logger logger = Logger.getLogger();
 
 	// Might have to return object for future use
 	public <T> Object insertObject(Object object) throws UsernameAlreadyExistsException, RecipeNameAlreadyExists {
 		Object obj = null;
-		try (Connection connection = con.getConnection()) {
+		try (Connection connection = con.getConnectionDB()) {
 			logger.log("ORM Attemps insertion", LoggingLevel.TRACE);
 			T temp = (T) object.getClass().getConstructor().newInstance();
 			PreparedStatement ps;
@@ -77,7 +78,7 @@ public class ORMImpl implements ORM {
 
 	public <T> Object deleteObject(Object object) {
 		Object obj = null;
-		try (Connection connection = con.getConnection();) {
+		try (Connection connection = con.getConnectionDB();) {
 			logger.log("ORM Attemps Deletion", LoggingLevel.TRACE);
 			T temp = (T) object.getClass().getConstructor().newInstance();
 			PreparedStatement ps;
@@ -120,7 +121,7 @@ public class ORMImpl implements ORM {
 
 	public Object findById(Object object) {
 
-		try (Connection connection = con.getConnection();) {
+		try (Connection connection = con.getConnectionDB();) {
 			logger.log("ORM Attemps findByID", LoggingLevel.TRACE);
 			PreparedStatement ps;
 			ResultSet rs;
@@ -223,7 +224,7 @@ public class ORMImpl implements ORM {
 		fieldStr.setLength(fieldStr.length() - 2);
 		//
 		String query = "UPDATE " + clazz.getSimpleName().toLowerCase() + " SET " + fieldStr.toString() + " where " + id + "=" + idValue + "";
-		try (Connection conn = con.getConnection()) {
+		try (Connection conn = con.getConnectionDB()) {
 			PreparedStatement stmt = conn.prepareStatement(query);
 			stmt.executeUpdate();
 		} catch (SQLException e) {
@@ -241,7 +242,7 @@ public class ORMImpl implements ORM {
 		String sql = "SELECT * FROM " + clazz.getSimpleName().toLowerCase();
 		
 		List<T> all = new ArrayList<>();
-		try (Connection conn = con.getConnection()) {
+		try (Connection conn = con.getConnectionDB()) {
 			PreparedStatement ps = conn.prepareStatement(sql);
 			ResultSet rs;
 			
