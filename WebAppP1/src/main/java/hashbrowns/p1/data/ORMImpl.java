@@ -198,7 +198,7 @@ public class ORMImpl implements ORM {
 		for (Field field : fields) {
 			field.setAccessible(true);
 			try {
-				if (!field.isAnnotationPresent(Id.class) && (field.get(object) != null || !field.get(object).toString().equals("0"))) {
+				if (!field.isAnnotationPresent(Id.class) && (field.get(object) != null || field.getInt(object) == 0|| field.get(object) == "0")) {
 					
 					fieldStr.append(field.getName());
 					fieldStr.append("='");
@@ -212,7 +212,7 @@ public class ORMImpl implements ORM {
 					idValue = field.get(object).toString();
 					
 				}else {
-					
+					fieldStr.append("");
 				}
 				
 			} catch (IllegalArgumentException | IllegalAccessException e) {
