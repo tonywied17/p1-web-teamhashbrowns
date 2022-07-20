@@ -9,43 +9,32 @@ import java.util.Properties;
 
 public class Connect {
 	static Logger logger = Logger.getLogger();
-	private static Connect con;
-	private Properties props;
-	
+	private static Connect connDB;
+	static final String endpoint = "jdbc:postgresql://db-fs.cmqm9wl6ccrf.us-east-1.rds.amazonaws.com:5432/postgres",
+			username = "postgres", password = "password";
+
 	private Connect() {
-		props = new Properties();		
-		InputStream propsFile = Connect.class.getClassLoader()
-				.getResourceAsStream("database.properties");
-		try {
-			props.load(propsFile);
-		} catch (IOException e) {
-			e.printStackTrace();
+	};
+
+	public static synchronized Connect getConnect() {
+		if (connDB == null) {
+			connDB = new Connect();
 		}
+		return connDB;
 	}
 
-	
-	public static synchronized Connect getConnect() {
-		if(con == null) {
-			con = new Connect();
-			logger.log("Connection Object Created", LoggingLevel.INFO);
-		}
-		return con;
-	}
-	public Connection getConnection() throws SQLException{
-		Connection con = null;
-		String dbUrl = props.getProperty("url");
-		String dbUser = props.getProperty("usr");
-		String dbPass = props.getProperty("psw");
+	public Connection getConnection() {
+
+		Connection conn = null;
 
 		try {
 			Class.forName("org.postgresql.Driver");
-			con = DriverManager.getConnection(dbUrl, dbUser, dbPass);
+			conn = DriverManager.getConnection(endpoint, username, password);
 		} catch (SQLException | ClassNotFoundException e) {
-			logger.log("Database Connection Failed", LoggingLevel.FATAL);
 			e.printStackTrace();
 		}
 
-		return con;
+		return conn;
 	}
 }
 
