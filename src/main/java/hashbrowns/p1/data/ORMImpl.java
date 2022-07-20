@@ -71,52 +71,47 @@ public class ORMImpl implements ORM {
 	}
 
 	public <T> Object deleteObject(Object object) {
-		Object obj = null;
-		try (Connection connection = con.getConnection();) {
-			logger.log("ORM Attemps Deletion", LoggingLevel.TRACE);
-			T temp = (T) object.getClass().getConstructor().newInstance();
-			PreparedStatement ps;
-			int rowsAffected;
-			connection.setAutoCommit(false);
-			StringBuilder info = new StringBuilder();
-			Class<?> clazz = object.getClass();
-			Field[] fields = clazz.getDeclaredFields();
-			info.append("delete from " + clazz.getSimpleName().toLowerCase() + " where id =");
-			for (Field field : fields) {
-				field.setAccessible(true);
-				Annotation annId = field.getAnnotation(Id.class);
-				annId = field.getAnnotation(Id.class);
-				if (annId != null) {
-					info.append(" " + field.get(object) + ";");
-					field.set(temp, field.get(object));
-				} else {
-					field.set(temp, field.get(object));
+		//
+		Class<?> clazz = object.getClass();
+		Field[] fields = clazz.getDeclaredFields();
+		String id = null;
+		String idValue = null;
+		String table = clazz.getSimpleName().toLowerCase();
+		//
+		for (Field field : fields) {
+			field.setAccessible(true);
+			
+			if (field.isAnnotationPresent(Id.class)) {
+				id = field.getName().toString();
+				try {
+					idValue = field.get(object).toString();
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
 				}
 			}
-			ps = connection.prepareStatement(info.toString());
-			rowsAffected = ps.executeUpdate();
-
-			if (rowsAffected == 1) {
-				logger.log("Deletion Completed", LoggingLevel.TRACE);
-				connection.commit();
-				obj = temp;
-			} else {
-				logger.log("Deletion Went Wrong", LoggingLevel.WARN);
-				connection.rollback();
-			}
-
-		} catch (SQLException | IllegalArgumentException | IllegalAccessException | InstantiationException
-				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			// TODO Auto-generated catch block
+			
+		}
+		
+		//
+		String sql = "DELETE FROM " + table + " WHERE " + id + "='" + idValue + "';";
+		try (Connection conn = con.getConnection()) {
+			conn.setAutoCommit(false);
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.executeUpdate();
+			conn.commit();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return obj;
+		object = null;
+		return object;
 	}
 
 	@Override
 	public <T> Object findById(Object object) {
 		Object obj = null;
-		try (Connection connection = con.getConnection();) {
+		try (Connection connection = con.getConnection()) {
 			logger.log("ORM Attemps findByID", LoggingLevel.TRACE);
 			T temp = (T) object.getClass().getConstructor().newInstance();
 			PreparedStatement ps;
@@ -193,8 +188,7 @@ public class ORMImpl implements ORM {
 		for (Field field : fields) {
 			field.setAccessible(true);
 			try {
-				if (!field.isAnnotationPresent(Id.class)
-						&& (field.get(object) != null || !field.get(object).toString().equals("0"))) {
+				if (!field.isAnnotationPresent(Id.class) && (field.get(object) != null)) {
 
 					fieldStr.append(field.getName());
 					fieldStr.append("='");
@@ -216,7 +210,7 @@ public class ORMImpl implements ORM {
 				e.printStackTrace();
 			}
 		}
-		;
+		
 		fieldStr.setLength(fieldStr.length() - 2);
 		//
 		String query = "UPDATE " + clazz.getSimpleName().toLowerCase() + " SET " + fieldStr.toString() + " where " + id

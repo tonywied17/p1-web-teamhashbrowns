@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -93,29 +94,76 @@ public class RecipeServlet extends HttpServlet {
 	
 	@Override
 	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		logger.log("User is Updating a Recipe (--DO_PUT()--)", LoggingLevel.TRACE);
+		StringBuilder uriString = new StringBuilder(req.getRequestURI()); // /p1/hello/id
+		uriString.replace(0, req.getContextPath().length() + 1, "");
 
-		Recipe recipe  = objMapper.readValue(req.getInputStream(), Recipe.class);
+		if (uriString.indexOf("/") != -1) {
+			logger.log("User is updating a specific Player (--DO_PUT()--)", LoggingLevel.TRACE);
+			uriString.replace(0, uriString.indexOf("/") + 1, ""); // 6
+			String path = uriString.toString();
 
-		recipeService.updateObject(recipe);
-		
-		PrintWriter writer = resp.getWriter();
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		String json = ow.writeValueAsString(recipe);
-		writer.write(json);
+			try {
+				objMapper.setSerializationInclusion(Include.NON_NULL);
+				Recipe recipe = objMapper.readValue(req.getInputStream(), Recipe.class);
+
+				int id = Integer.parseInt(path);
+
+				recipe.setId(id);
+
+				Object returnRecipe = recipeService.updateObject(recipe);
+
+				PrintWriter writer = resp.getWriter();
+				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+				String json = ow.writeValueAsString(returnRecipe);
+				writer.write(json);
+
+			} catch (Exception e) {
+				logger.log("User Entered an invalid Player ID", LoggingLevel.INFO);
+				PrintWriter writer = resp.getWriter();
+				writer.write("Not an id!");
+			}
+
+		} else {
+			logger.log("ID not supplied", LoggingLevel.INFO);
+			PrintWriter writer = resp.getWriter();
+			writer.write("Put requires an id!");
+		}
 	}
 	
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-		logger.log("User is Deleting a Recipe (--DO_DELETE()--)", LoggingLevel.TRACE);
-		Recipe recipe  = objMapper.readValue(req.getInputStream(), Recipe.class);
+		logger.log("User is Deleting a Chef (--DO_DELETE()--)", LoggingLevel.TRACE);
 
-		recipeService.deleteObj(recipe);
-		
-		PrintWriter writer = resp.getWriter();
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		String json = ow.writeValueAsString(recipe);
-		writer.write(json);
+		StringBuilder uriString = new StringBuilder(req.getRequestURI()); // /p1/hello/id
+		uriString.replace(0, req.getContextPath().length() + 1, "");
+
+		if (uriString.indexOf("/") != -1) {
+
+			uriString.replace(0, uriString.indexOf("/") + 1, ""); // 6
+			String path = uriString.toString();
+
+			try {
+				objMapper.setSerializationInclusion(Include.NON_NULL);
+				Recipe recipe = objMapper.readValue(req.getInputStream(), Recipe.class);
+
+				int id = Integer.parseInt(path);
+
+				recipe.setId(id);
+
+				Object returnRecipe = recipeService.deleteObj(recipe);
+
+				PrintWriter writer = resp.getWriter();
+				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+				String json = ow.writeValueAsString(returnRecipe);
+				writer.write(json);
+
+			} catch (Exception e) {
+				logger.log("User Entered an invalid Player ID", LoggingLevel.INFO);
+				PrintWriter writer = resp.getWriter();
+				writer.write("Not an id!");
+			}
+
+		}
 	}
 	
 	@Override

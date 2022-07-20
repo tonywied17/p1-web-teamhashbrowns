@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -14,6 +15,7 @@ import hashbrowns.p1.data.ORMImpl;
 import hashbrowns.p1.exceptions.RecipeNameAlreadyExists;
 import hashbrowns.p1.exceptions.UsernameAlreadyExistsException;
 import hashbrowns.p1.models.Chef;
+import hashbrowns.p1.models.Player;
 import hashbrowns.p1.services.ChefServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -88,28 +90,76 @@ public class ChefServlet extends HttpServlet {
 
 	@Override
 	protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		logger.log("User is Updating a Chef (--DO_PUT()--)", LoggingLevel.TRACE);
-		Chef chef = objMapper.readValue(req.getInputStream(), Chef.class);
+		StringBuilder uriString = new StringBuilder(req.getRequestURI()); // /p1/hello/id
+		uriString.replace(0, req.getContextPath().length() + 1, "");
 
-		chefService.updateObject(chef);
+		if (uriString.indexOf("/") != -1) {
+			logger.log("User is updating a specific Player (--DO_PUT()--)", LoggingLevel.TRACE);
+			uriString.replace(0, uriString.indexOf("/") + 1, ""); // 6
+			String path = uriString.toString();
 
-		PrintWriter writer = resp.getWriter();
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		String json = ow.writeValueAsString(chef);
-		writer.write(json);
+			try {
+				objMapper.setSerializationInclusion(Include.NON_NULL);
+				Chef chef = objMapper.readValue(req.getInputStream(), Chef.class);
+
+				int id = Integer.parseInt(path);
+
+				chef.setId(id);
+
+				Object returnChef = chefService.updateObject(chef);
+
+				PrintWriter writer = resp.getWriter();
+				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+				String json = ow.writeValueAsString(returnChef);
+				writer.write(json);
+
+			} catch (Exception e) {
+				logger.log("User Entered an invalid Player ID", LoggingLevel.INFO);
+				PrintWriter writer = resp.getWriter();
+				writer.write("Not an id!");
+			}
+
+		} else {
+			logger.log("ID not supplied", LoggingLevel.INFO);
+			PrintWriter writer = resp.getWriter();
+			writer.write("Put requires an id!");
+		}
 	}
 
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		logger.log("User is Deleting a Chef (--DO_DELETE()--)", LoggingLevel.TRACE);
-		Chef chef = objMapper.readValue(req.getInputStream(), Chef.class);
 
-		chefService.deleteObj(chef);
+		StringBuilder uriString = new StringBuilder(req.getRequestURI()); // /p1/hello/id
+		uriString.replace(0, req.getContextPath().length() + 1, "");
 
-		PrintWriter writer = resp.getWriter();
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		String json = ow.writeValueAsString(chef);
-		writer.write(json);
+		if (uriString.indexOf("/") != -1) {
+
+			uriString.replace(0, uriString.indexOf("/") + 1, ""); // 6
+			String path = uriString.toString();
+
+			try {
+				objMapper.setSerializationInclusion(Include.NON_NULL);
+				Chef chef = objMapper.readValue(req.getInputStream(), Chef.class);
+
+				int id = Integer.parseInt(path);
+
+				chef.setId(id);
+
+				Object returnChef = chefService.deleteObj(chef);
+
+				PrintWriter writer = resp.getWriter();
+				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+				String json = ow.writeValueAsString(returnChef);
+				writer.write(json);
+
+			} catch (Exception e) {
+				logger.log("User Entered an invalid Player ID", LoggingLevel.INFO);
+				PrintWriter writer = resp.getWriter();
+				writer.write("Not an id!");
+			}
+
+		}
 	}
 
 	@Override
