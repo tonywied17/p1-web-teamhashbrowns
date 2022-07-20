@@ -9,11 +9,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.stream.Stream;
 
 import hashbrowns.p1.utils.*;
 import hashbrowns.p1.annotations.Id;
@@ -28,51 +31,43 @@ public class ORMImpl implements ORM {
 
 	// Might have to return object for future use
 	public <T> Object insertObject(Object object) throws UsernameAlreadyExistsException, RecipeNameAlreadyExists {
-		Object obj = null;
-		try (Connection connection = con.getConnection()) {
-			logger.log("ORM Attemps insertion", LoggingLevel.TRACE);
-			T temp = (T) object.getClass().getConstructor().newInstance();
-			PreparedStatement ps;
-			int rowsAffected;
-			connection.setAutoCommit(false);
-			StringBuilder info = new StringBuilder();
-			Class<?> clazz = object.getClass();
-			Field[] fields = clazz.getDeclaredFields();
-			info.append("insert into " + clazz.getSimpleName().toLowerCase() + " values (");
-			for (Field field : fields) {
-				field.setAccessible(true);
+		
+		//
+		StringJoiner comma1 = new StringJoiner(", ");
+		StringJoiner comma2 = new StringJoiner("', '");
+		
+		//
+		Class<?> clazz = object.getClass();
+		Field[] fields = clazz.getDeclaredFields();
+		String table = clazz.getSimpleName().toLowerCase();
+		
+		Stream<Field> strArray = Arrays.stream(fields);
+		//
+		strArray.forEach(field -> {
+			field.setAccessible(true);
+			try {
+				if (!field.get(object).equals(null) & !field.isAnnotationPresent(Id.class)) {
 
-				Annotation annId = field.getAnnotation(Id.class);
-				annId = field.getAnnotation(Id.class);
-
-				if (annId != null) {
-					info.append("default, ");
-					field.set(temp, field.get(object));
-				} else {
-					info.append("'" + field.get(object) + "', ");
-					field.set(temp, field.get(object));
+					comma1.add(field.getName());
+					comma2.add(field.get(object).toString());
+				} else if (field.isAnnotationPresent(Id.class)) {
 				}
-
+			} catch (Exception e) {
+				logger.log("Nulled fields are being excluded from the statement", LoggingLevel.INFO);
 			}
-			info.delete(info.length() - 2, info.length());
-			info.append(");");
-			ps = connection.prepareStatement(info.toString());
-			rowsAffected = ps.executeUpdate();
+		});
+		//
+		String query = "INSERT INTO " + table + "(" + comma1.toString() + ") VALUES ('" + comma2.toString() + "')";
 
-			if (rowsAffected == 1) {
-				logger.log("Insertion Completed", LoggingLevel.TRACE);
-				connection.commit();
-				obj = temp;
-			} else {
-				logger.log("Insertion Went Wrong", LoggingLevel.WARN);
-				connection.rollback();
-			}
-		} catch (SQLException | IllegalArgumentException | IllegalAccessException | InstantiationException
-				| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
-			throw new UsernameAlreadyExistsException();
+		try (Connection conn = con.getConnection()) {
+			PreparedStatement stmt = conn.prepareStatement(query);
+			stmt.executeUpdate();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
-		return obj;
+		return object;
+		
 	}
 
 	public <T> Object deleteObject(Object object) {
