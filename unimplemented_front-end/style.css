@@ -79,6 +79,7 @@ h3,
 h4,
 h5,
 h6 {
+    color: #00000094;
     font-family: "Merriweather", Georgia, serif !important;
     font-weight: 400;
     margin: 10px 0;
@@ -89,18 +90,14 @@ h1 {
     font-size: 2rem !important;
     padding-bottom: .5em;
     font-style: italic;
-    color: #00000094;
     margin-bottom: 0em;
-    font-family: "Merriweather", Georgia, serif !important;
 }
 
 h2 {
     font-size: 1.7rem !important;
     padding-bottom: .5em;
     font-style: italic;
-    color: #00000094;
     margin-bottom: 1em;
-    font-family: "Merriweather", Georgia, serif !important;
 }
 
 @media only screen and (max-width: 600px) {
@@ -169,6 +166,7 @@ select {
     user-select: none;
     font-family: "Merriweather", Georgia, serif !important;
     transition: all .2s ease;
+    box-sizing: content-box;
 }
 
 input[type="text"]:focus {
@@ -187,14 +185,6 @@ button {
     margin-bottom: 2em;
     padding: 3px;
     font-size: 0.9rem !important;
-}
-
-input[type="password"],
-input[type="text"],
-textarea,
-select,
-button {
-    box-sizing: content-box;
 }
 
 button:active {
