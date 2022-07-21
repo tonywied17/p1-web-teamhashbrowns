@@ -31,7 +31,7 @@ public class Connect {
 			Class.forName("org.postgresql.Driver");
 			conn = DriverManager.getConnection(endpoint, username, password);
 		} catch (SQLException | ClassNotFoundException e) {
-			e.printStackTrace();
+			logger.log("SQL ERROR", LoggingLevel.TRACE);
 		}
 
 		return conn;

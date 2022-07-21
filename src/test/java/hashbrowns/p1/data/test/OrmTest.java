@@ -105,9 +105,13 @@ public class OrmTest {
 	
 	@Test
 	public void findById() throws SQLException {
-		Chef chefRamsey = new Chef(9,"Hungarian Mike","uff", "nul");
+		
+		Chef chefRamsey = new Chef(5, "Hungarian Mike", "heh", "uff");
+
 		Object chef = null;
+		
 		chef = orm.findById(chefRamsey);	
+		
 		Assertions.assertNotNull(chef);
 		Assertions.assertEquals(chefRamsey.toString(), chef.toString());
 	}

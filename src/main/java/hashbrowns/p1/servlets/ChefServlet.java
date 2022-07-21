@@ -29,7 +29,6 @@ public class ChefServlet extends HttpServlet {
 	private ObjectMapper objMapper = new ObjectMapper();
 	Logger logger = Logger.getLogger();
 
-
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
@@ -60,6 +59,7 @@ public class ChefServlet extends HttpServlet {
 				writer.write("Not an id!");
 
 			}
+			
 
 		} else {
 			logger.log("User is requsting all Chef's (--DO_GET()--)", LoggingLevel.TRACE);

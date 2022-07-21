@@ -31,16 +31,16 @@ public class ORMImpl implements ORM {
 
 	// Might have to return object for future use
 	public <T> Object insertObject(Object object) throws UsernameAlreadyExistsException, RecipeNameAlreadyExists {
-		
+
 		//
 		StringJoiner comma1 = new StringJoiner(", ");
 		StringJoiner comma2 = new StringJoiner("', '");
-		
+
 		//
 		Class<?> clazz = object.getClass();
 		Field[] fields = clazz.getDeclaredFields();
 		String table = clazz.getSimpleName().toLowerCase();
-		
+
 		Stream<Field> strArray = Arrays.stream(fields);
 		//
 		strArray.forEach(field -> {
@@ -67,7 +67,7 @@ public class ORMImpl implements ORM {
 			e1.printStackTrace();
 		}
 		return object;
-		
+
 	}
 
 	public <T> Object deleteObject(Object object) {
@@ -80,7 +80,7 @@ public class ORMImpl implements ORM {
 		//
 		for (Field field : fields) {
 			field.setAccessible(true);
-			
+
 			if (field.isAnnotationPresent(Id.class)) {
 				id = field.getName().toString();
 				try {
@@ -91,9 +91,9 @@ public class ORMImpl implements ORM {
 					e.printStackTrace();
 				}
 			}
-			
+
 		}
-		
+
 		//
 		String sql = "DELETE FROM " + table + " WHERE " + id + "='" + idValue + "';";
 		try (Connection conn = con.getConnection()) {
@@ -110,69 +110,76 @@ public class ORMImpl implements ORM {
 
 	@Override
 	public <T> Object findById(Object object) {
-		Object obj = null;
-		try (Connection connection = con.getConnection()) {
-			logger.log("ORM Attemps findByID", LoggingLevel.TRACE);
-			T temp = (T) object.getClass().getConstructor().newInstance();
-			PreparedStatement ps;
-			ResultSet rs;
-			connection.setAutoCommit(false);
-			StringBuilder info = new StringBuilder();
-			Class<?> clazz = object.getClass();
-			Field[] fields = clazz.getDeclaredFields();
-			info.append("select * from " + clazz.getSimpleName().toLowerCase() + " where id=");
+		//
 
-			for (Field field : fields) {
+		Class<?> clazz = object.getClass();
+		Field[] fields = clazz.getDeclaredFields();
+		String id = null;
+		String idValue = null;
+		String table = clazz.getSimpleName().toLowerCase();
+		//
+		for (Field field : fields) {
+			if (field.isAnnotationPresent(Id.class)) {
 				field.setAccessible(true);
-				Annotation annId = field.getAnnotation(Id.class);
-				annId = field.getAnnotation(Id.class);
-				if (annId != null) {
-					info.append(" " + field.get(object) + ";");
+				id = field.getName().toString();
+				try {
+					idValue = field.get(object).toString();
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
-			ps = connection.prepareStatement(info.toString());
-			rs = ps.executeQuery();
-			if (rs.next()) {
-				logger.log("ID + Object Was Found", LoggingLevel.TRACE);
-				for (Field field : clazz.getDeclaredFields()) {
-					field.setAccessible(true);
-					Annotation annId = field.getAnnotation(Id.class);
-					annId = field.getAnnotation(Id.class);
-					int column = rs.findColumn(field.getName());
+		}
 
-					if (annId == null) {
+		//
+		String query = "SELECT * FROM " + table + " WHERE " + id + " = '" + idValue + "'";
 
-						if (field.getType().getSimpleName().equals("String")) {
+		try (Connection conn = con.getConnection()) {
+			Field[] fields1 = object.getClass().getDeclaredFields();
+			Map<String, Object> row = new HashMap<String, Object>();
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet resultSet = stmt.executeQuery();
+			ResultSetMetaData metaData = resultSet.getMetaData();
+			int columns = metaData.getColumnCount();
+			//
+			while (resultSet.next()) {
+				for (int i = 1; i <= columns; i++) {
+					row.put(metaData.getColumnLabel(i), resultSet.getObject(i));
+				}
+				//
+				row.entrySet().stream().forEach(e -> {
+					for (Field field : fields1) {
+						field.setAccessible(true);
+						try {
+							if (field.getName().equals(e.getKey())
+									&& field.getType().getSimpleName().equals("String")) {
+								field.set(object, e.getValue().toString());
+							} else if (field.getName().equals(e.getKey())
+									&& field.getType().getSimpleName().equals("int")) {
+								field.setInt(object, (int) e.getValue());
+							} else if (field.getName().equals(e.getKey())
+									&& field.getType().getSimpleName().equals("Double")) {
+								double d = Double.parseDouble((String) e.getValue());
+								field.set(object, d);
+							} else if (field.getName().equals(e.getKey())
+									&& field.getType().getSimpleName().equals("boolean")) {
+								field.setBoolean(object, (boolean) e.getValue());
+							} else {
 
-							field.set(temp, rs.getObject(column));
-
-						} else if (field.getType().getSimpleName().equals("int")) {
-
-							field.setInt(temp, (int) rs.getObject(column));
-
-						} else if (field.getType().getSimpleName().equals("Double")) {
-
-							double d = Double.parseDouble((String) rs.getObject(column));
-
-							field.set(temp, d);
-
-						} else if (field.getType().getSimpleName().equals("boolean")) {
-
-							field.setBoolean(temp, (boolean) rs.getObject(column));
+							}
+						} catch (Exception e1) {
+							e1.printStackTrace();
 						}
-
-					} else if (annId != null) {
-						field.set(temp, rs.getObject(column));
 					}
-				}
-				obj = temp;
-			} else {
-				logger.log("Invalid ID was inserted", LoggingLevel.INFO);
+				});
 			}
-		} catch (SQLException | IllegalArgumentException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return obj;
+		return object;
 	}
 
 	public <T> Object updateObject(Object object) {
@@ -210,7 +217,7 @@ public class ORMImpl implements ORM {
 				e.printStackTrace();
 			}
 		}
-		
+
 		fieldStr.setLength(fieldStr.length() - 2);
 		//
 		String query = "UPDATE " + clazz.getSimpleName().toLowerCase() + " SET " + fieldStr.toString() + " where " + id
