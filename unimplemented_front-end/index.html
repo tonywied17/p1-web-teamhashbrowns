@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Project 1 - Hashbrowns</title>
+    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://tonewebdesign.com/74de4910c5.js" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- lazy tab menu that i will overide with custom css -->
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+
+<body>
+    <div id="container">
+        <header>
+            <i class="fa-solid fa-hashtag"></i> Team Hashbrowns
+        </header>
+
+        <div class="content-container">
+
+            <div class="content-left">
+
+
+                <style>
+                    .w3-button:hover {
+                        color: #918364b5 !important;
+                        background-color: #cfc7b3 !important;
+                        border-radius: 0.2em !important
+                    }
+                </style>
+                <h1>Testing Models</h1>
+                <div class="w3-bar" style="margin-bottom:3em;">
+                    <button class="w3-bar-item w3-button override" onclick="openModel('Cook')">Cook</button>
+                    <button class="w3-bar-item w3-button override" onclick="openModel('Recipe')">Recipe</button>
+                    <button class="w3-bar-item w3-button override" onclick="openModel('Player')">Player</button>
+                </div>
+
+                <div id="Cook" class="w3-container model">
+
+
+                    <h2>All Cooks</h2>
+                    <p>Refresh to grab all entries stored in the cook table.</p>
+                    <code>
+                        {null,null}
+                    </code>
+                    <button>Refresh JSON <i style="margin-left: 0.3em;" class="fa-duotone fa-arrows-rotate"></i></button>
+
+                    <h2 style="margin-top:2em;margin-bottom:1em;">New Cook</h2>
+                    <p>Insert a new record, or update the cook table.</p>
+                    <h4>ID</h4>
+                    <input type="text" id="cook-id" placeholder="only needed for updating...">
+                    <h4>Name</h4>
+                    <input type="text" id="cook-name">
+                    <h4>Username</h4>
+                    <input type="text" id="cook-user-name">
+                    <h4>Password</h4>
+                    <input type="password" id="cook-password">
+                    <button>Insert <i style="margin-left: 0.3em;" class="fa-solid fa-up-right"></i></i></button>
+                    <button>Update <i style="margin-left: 0.3em;" class="fa-solid fa-up-right"></i></i></button>
+
+
+
+                </div>
+
+                <div id="Recipe" class="w3-container model" style="display:none">
+
+
+                    <h2>All Recipes</h2>
+                    <p>Refresh to grab all entries stored in the recipe table.</p>
+                    <code>
+                        {null,null}
+                    </code>
+                    <button>Refresh JSON <i style="margin-left: 0.3em;" class="fa-duotone fa-arrows-rotate"></i></button>
+
+                    <h2 style="margin-top:2em;margin-bottom:1em;">New Recipe</h2>
+                    <p>Insert a new record, or update the recipe table.</p>
+                    <h4>ID</h4>
+                    <input type="text" id="recipe-id" placeholder="only needed for updating...">
+                    <h4>Name</h4>
+                    <input type="text" id="recipe-name">
+                    <h4>Description</h4>
+                    <input type="text" id="recipe-description">
+                    <h4>Instructions</h4>
+                    <input type="text" id="recipe-instructions">
+                    <h4>Ingredients</h4>
+                    <input type="text" id="recipe-ingredients">
+                    <button>Insert <i style="margin-left: 0.3em;" class="fa-solid fa-up-right"></i></i></button>
+                    <button>Update <i style="margin-left: 0.3em;" class="fa-solid fa-up-right"></i></i></button>
+                </div>
+
+                <div id="Player" class="w3-container model" style="display:none">
+
+                    <h2>All Players</h2>
+                    <p>Refresh to grab all entries stored in the players table.</p>
+                    <code>
+                        {null,null}
+                    </code>
+                    <button>Refresh JSON <i style="margin-left: 0.3em;" class="fa-duotone fa-arrows-rotate"></i></button>
+
+                    <h2 style="margin-top:2em;margin-bottom:1em;">New Baseball Player</h2>
+                    <p>Insert a new record, or update the player table.</p>
+                    <h4>ID</h4>
+                    <input type="text" id="player-id" placeholder="only needed for updating...">
+                    <h4>Name</h4>
+                    <input type="text" id="player-name">
+                    <h4>Position</h4>
+                    <input type="text" id="player-position">
+                    <h4>Debut</h4>
+                    <input type="text" id="player-debut">
+                    <h4>Batting Average</h4>
+                    <input type="text" id="player-avereage">
+                    <h4>Homeruns</h4>
+                    <input type="text" id="player-homerunse">
+                    <h4>Runs Batted In</h4>
+                    <input type="text" id="player-rbi">
+                    <h4>Active Player</h4>
+                    <select id="player-active">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                    <button>Insert <i style="margin-left: 0.3em;" class="fa-solid fa-up-right"></i></i></button>
+                    <button>Update <i style="margin-left: 0.3em;" class="fa-solid fa-up-right"></i></i></button>
+                </div>
+
+
+
+
+            </div>
+            <div class="content-right">
+                <h2>The Team</h2>
+                <code>{"name": "franklyn"}, {"name": "tony"}</code>
+
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
