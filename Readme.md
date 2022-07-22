@@ -1,8 +1,8 @@
 # Project 1 - Custom Object Relational Mapping Framework
 
 
-## Description
-
+## Flow Chart
+![alt text](https://tonewebdesign.com/frontend/flow-chart.png)
 
 ## Tech Stack
 - [ ] Java 8
